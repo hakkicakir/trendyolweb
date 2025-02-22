@@ -7,10 +7,6 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
 
 app = Flask(__name__)
 
@@ -27,21 +23,19 @@ def index():
         # Progress'i sıfırla
         progress_status = 0  
 
-        # 📌 1️⃣ Google Chrome ve ChromeDriver'ı Otomatik Ayarla
+        # 📌 1️⃣ Google Chrome ve ChromeDriver yollarını belirt
+        CHROME_PATH = "/usr/bin/google-chrome-stable"
+        CHROMEDRIVER_PATH = "/usr/local/bin/chromedriver"
+
         chrome_options = Options()
+        chrome_options.binary_location = CHROME_PATH  # Chrome'un doğru yolunu ekle
         chrome_options.add_argument("--headless")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
 
-        # Google Chrome'un Yolu
-        chrome_path = "/opt/render/project/.google-chrome/opt/google/chrome/chrome"
-        if os.path.exists(chrome_path):
-            chrome_options.binary_location = chrome_path
-
-        # ChromeDriver'ı yükle ve kullan
-        chrome_options.binary_location = "/usr/bin/google-chrome-stable"
-        driver = webdriver.Chrome(service=Service("/usr/local/bin/chromedriver"), options=chrome_options)
-
+        # Tarayıcıyı başlat
+        service = Service(CHROMEDRIVER_PATH)
+        driver = webdriver.Chrome(service=service, options=chrome_options)
 
         # 📌 2️⃣ Trendyol Yorumlarını Çek
         driver.get(url)

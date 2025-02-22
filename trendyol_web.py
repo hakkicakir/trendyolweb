@@ -4,9 +4,9 @@ import pandas as pd
 import re
 import time
 from selenium import webdriver
-from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
 
 app = Flask(__name__)
 
@@ -23,18 +23,14 @@ def index():
         # Progress'i sıfırla
         progress_status = 0  
 
-        # 📌 1️⃣ Google Chrome ve ChromeDriver yollarını belirt
-        CHROME_PATH = "/usr/bin/google-chrome-stable"
-        CHROMEDRIVER_PATH = "/usr/local/bin/chromedriver"
-
+        # ✅ WebDriver Manager ile ChromeDriver'ı Otomatik Yükle
         chrome_options = Options()
-        chrome_options.binary_location = CHROME_PATH  # Chrome'un doğru yolunu ekle
-        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--headless")  # Arka planda çalıştır
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
 
-        # Tarayıcıyı başlat
-        service = Service(CHROMEDRIVER_PATH)
+        # ChromeDriver'ı Otomatik Yöneten Kütüphane Kullanılıyor
+        service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=chrome_options)
 
         # 📌 2️⃣ Trendyol Yorumlarını Çek
@@ -47,19 +43,16 @@ def index():
         while not sayfa_sonuna_ulaşıldı:
             comment_elements = driver.find_elements(By.CLASS_NAME, "comment")
             toplam_yorum = len(comment_elements) if len(comment_elements) > 0 else 1
-            ilerleme_adimi = 100 / toplam_yorum  # Her yorum çekildiğinde ilerleme yüzdesi
+            ilerleme_adimi = 100 / toplam_yorum  
 
             for i, comment in enumerate(comment_elements):
                 try:
-                    # Kullanıcı Adı ve Tarih
                     comment_info = comment.find_elements(By.CLASS_NAME, "comment-info-item")
                     kullanici_adi = comment_info[0].text.strip() if len(comment_info) > 0 else ""
                     tarih = comment_info[1].text.strip() if len(comment_info) > 1 else ""
 
-                    # Yorum Metni
                     yorum_metni = comment.find_element(By.CLASS_NAME, "comment-text").text.strip()
 
-                    # Yıldız Sayısını Al
                     try:
                         star_elements = comment.find_elements(By.CLASS_NAME, "star-w")
                         yildiz_sayisi = len(star_elements)
@@ -67,7 +60,6 @@ def index():
                     except:
                         yildiz_puani = "Bilinmiyor"
 
-                    # Boy & Kilo (Varsa)
                     boy = re.search(r"Boy: (\d+cm)", yorum_metni)
                     boy = boy.group(1) if boy else ""
 
@@ -75,8 +67,6 @@ def index():
                     kilo = kilo.group(1) if kilo else ""
 
                     yorumlar.append([kullanici_adi, tarih, yildiz_puani, boy, kilo, yorum_metni])
-
-                    # 📌 Yükleme ilerlemesini güncelle
                     progress_status += ilerleme_adimi
 
                 except Exception as e:
@@ -96,7 +86,6 @@ def index():
 
         driver.quit()
 
-        # 📌 3️⃣ Excel'e Kaydet
         if not os.path.exists("static"):
             os.makedirs("static")
 
@@ -104,15 +93,11 @@ def index():
         dosya_yolu = os.path.join("static", f"{dosya_adi}.xlsx")
         df.to_excel(dosya_yolu, index=False, engine="openpyxl")
 
-        # Yükleme tamamlandı
         progress_status = 100  
-
         return send_file(dosya_yolu, as_attachment=True)
 
     return render_template("index.html")
 
-
-# 📌 4️⃣ İlerleme Durumu İçin API (Gerçek Zamanda Takip)
 @app.route("/progress")
 def progress():
     return jsonify({"progress": progress_status})

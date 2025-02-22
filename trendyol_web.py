@@ -10,7 +10,6 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 app = Flask(__name__)
 
-# Küresel değişken ile yükleme durumunu takip edeceğiz
 progress_status = 0
 
 @app.route("/", methods=["GET", "POST"])
@@ -23,7 +22,7 @@ def index():
         # Progress'i sıfırla
         progress_status = 0  
 
-        # ✅ WebDriver Manager ile ChromeDriver'ı Otomatik Yükle
+        # ✅ WebDriver Manager ile Chrome ve ChromeDriver Kurulumu
         chrome_options = Options()
         chrome_options.add_argument("--headless")  # Arka planda çalıştır
         chrome_options.add_argument("--no-sandbox")
@@ -33,7 +32,6 @@ def index():
         service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=chrome_options)
 
-        # 📌 2️⃣ Trendyol Yorumlarını Çek
         driver.get(url)
         time.sleep(5)
 

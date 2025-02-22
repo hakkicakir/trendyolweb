@@ -14,6 +14,21 @@ import chromedriver_autoinstaller
 
 app = Flask(__name__)
 
+# 📌 1️⃣ Chrome ve ChromeDriver'ı Yükleme Fonksiyonu
+def setup_chrome():
+    """Google Chrome ve ChromeDriver'ı Render ortamında yükler."""
+    os.system("apt-get update")
+    os.system("apt-get install -y wget unzip")
+    os.system("wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb")
+    os.system("dpkg -i google-chrome-stable_current_amd64.deb || apt-get install -fy")
+    os.system("rm google-chrome-stable_current_amd64.deb")
+    os.system("wget -O /usr/local/bin/chromedriver https://storage.googleapis.com/chrome-for-testing-public/124.0.6367.91/linux64/chromedriver-linux64.zip")
+    os.system("unzip /usr/local/bin/chromedriver -d /usr/local/bin/")
+    os.system("chmod +x /usr/local/bin/chromedriver")
+
+# 📌 Render ortamında Chrome ve ChromeDriver'ı yükleyelim
+setup_chrome()
+
 # Küresel değişken ile yükleme durumunu takip edeceğiz
 progress_status = 0
 
@@ -27,18 +42,20 @@ def index():
         # Progress'i sıfırla
         progress_status = 0  
 
-        # 📌 1️⃣ Chrome ve ChromeDriver'ı Otomatik Yükle
+        # 📌 2️⃣ Chrome ve ChromeDriver'ı Otomatik Yükle
         chromedriver_autoinstaller.install()
 
         chrome_options = Options()
-        chrome_options.binary_location = os.getenv("GOOGLE_CHROME_BIN", "/usr/bin/google-chrome-stable")
+        chrome_options.binary_location = "/usr/bin/google-chrome"  # Render için Chrome yolu
         chrome_options.add_argument("--headless")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
 
-        driver = webdriver.Chrome(service=Service(os.getenv("CHROMEDRIVER_PATH", "/usr/local/bin/chromedriver")), options=chrome_options)
+        # ChromeDriver için Service oluştur
+        service = Service("/usr/local/bin/chromedriver")
+        driver = webdriver.Chrome(service=service, options=chrome_options)
 
-        # 📌 2️⃣ Trendyol Yorumlarını Çek
+        # 📌 3️⃣ Trendyol Yorumlarını Çek
         driver.get(url)
         time.sleep(5)
 
@@ -97,7 +114,7 @@ def index():
 
         driver.quit()
 
-        # 📌 3️⃣ Excel'e Kaydet
+        # 📌 4️⃣ Excel'e Kaydet
         if not os.path.exists("static"):
             os.makedirs("static")
 
@@ -113,7 +130,7 @@ def index():
     return render_template("index.html")
 
 
-# 📌 4️⃣ İlerleme Durumu İçin API (Gerçek Zamanda Takip)
+# 📌 5️⃣ İlerleme Durumu İçin API (Gerçek Zamanda Takip)
 @app.route("/progress")
 def progress():
     return jsonify({"progress": progress_status})

@@ -10,6 +10,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import chromedriver_autoinstaller
 
 app = Flask(__name__)
 
@@ -26,15 +27,16 @@ def index():
         # Progress'i sıfırla
         progress_status = 0  
 
-        # 📌 1️⃣ ChromeDriver Ayarları
-        chrome_driver_path = "C:/chromedriver.exe"  # Windows için
+        # 📌 1️⃣ Chrome ve ChromeDriver'ı Otomatik Yükle
+        chromedriver_autoinstaller.install()
+
         chrome_options = Options()
+        chrome_options.binary_location = os.getenv("GOOGLE_CHROME_BIN", "/usr/bin/google-chrome-stable")
         chrome_options.add_argument("--headless")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
 
-        service = Service(executable_path=chrome_driver_path)
-        driver = webdriver.Chrome(service=service, options=chrome_options)
+        driver = webdriver.Chrome(service=Service(os.getenv("CHROMEDRIVER_PATH", "/usr/local/bin/chromedriver")), options=chrome_options)
 
         # 📌 2️⃣ Trendyol Yorumlarını Çek
         driver.get(url)

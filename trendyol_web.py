@@ -22,14 +22,18 @@ def index():
         # Progress'i sıfırla
         progress_status = 0  
 
-        # ✅ WebDriver Manager ile Chrome ve ChromeDriver Kurulumu
+        # ✅ Google Chrome ve ChromeDriver Ayarları
+        CHROME_PATH = "/usr/bin/google-chrome"
+        CHROMEDRIVER_PATH = "/usr/bin/chromedriver"
+
         chrome_options = Options()
-        chrome_options.add_argument("--headless")  # Arka planda çalıştır
+        chrome_options.binary_location = CHROME_PATH
+        chrome_options.add_argument("--headless")  
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
 
-        # ChromeDriver'ı Otomatik Yöneten Kütüphane Kullanılıyor
-        service = Service(ChromeDriverManager().install())
+        # ✅ ChromeDriver'ı manuel yol ile başlat
+        service = Service(CHROMEDRIVER_PATH)
         driver = webdriver.Chrome(service=service, options=chrome_options)
 
         driver.get(url)

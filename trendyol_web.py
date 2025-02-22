@@ -39,7 +39,9 @@ def index():
             chrome_options.binary_location = chrome_path
 
         # ChromeDriver'ı yükle ve kullan
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+        chrome_options.binary_location = "/usr/bin/google-chrome-stable"
+        driver = webdriver.Chrome(service=Service("/usr/local/bin/chromedriver"), options=chrome_options)
+
 
         # 📌 2️⃣ Trendyol Yorumlarını Çek
         driver.get(url)
